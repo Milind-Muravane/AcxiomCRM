@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Logs{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">System Audit Logs</h3>
+    <p class="text-muted mb-0">Immutable tracking of user authentication, state changes, and business transactions</p>
+  </div>
+  <div class="alert alert-secondary py-1 px-3 mb-0 small border">
+    <i class="bi bi-shield-check me-1"></i> Read-Only Security Trail
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body p-3">
+    <form method="GET" action="{{ url_for('audit.list_logs') }}" class="row g-2 align-items-center">
+      <div class="col-md-4">
+        <input type="text" name="action" class="form-control" placeholder="Filter by action (e.g. LOGIN, CUSTOMER)..." value="{{ action }}">
+      </div>
+      <div class="col-md-3">
+        <select name="entity" class="form-select">
+          <option value="All">All Entities</option>
+          {% for ent in entities %}
+          <option value="{{ ent }}" {% if entity == ent %}selected{% endif %}>{{ ent }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <input type="text" name="search" class="form-control" placeholder="Search user, ID, or payload..." value="{{ search }}">
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-dark w-100">Filter</button>
+        {% if action or entity or search %}
+          <a href="{{ url_for('audit.list_logs') }}" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-x-lg"></i></a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Audit Log Table -->
+<div class="card shadow-sm border-0">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 font-monospace small">
+        <thead class="font-sans-serif">
+          <tr>
+            <th>Log ID</th>
+            <th>Timestamp</th>
+            <th>Action</th>
+            <th>Entity</th>
+            <th>Record ID</th>
+            <th>User</th>
+            <th>IP Address</th>
+            <th>Details / Delta</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if logs %}
+            {% for l in logs %}
+            <tr>
+              <td>#{{ l.id }}</td>
+              <td class="text-nowrap">{{ l.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              <td>
+                <span class="badge {% if 'LOGIN_FAILED' in l.action or 'LOCKED' in l.action %}bg-danger{% elif 'LOGIN' in l.action %}bg-success{% elif 'DELETED' in l.action %}bg-danger-subtle text-danger border{% elif 'CREATED' in l.action %}bg-primary-subtle text-primary border{% else %}bg-secondary-subtle text-secondary border{% endif %}">
+                  {{ l.action }}
+                </span>
+              </td>
+              <td><span class="badge bg-light text-dark border">{{ l.entity_name or '—' }}</span></td>
+              <td>{{ l.record_id or '—' }}</td>
+              <td>{{ l.user_email or 'System' }}</td>
+              <td>{{ l.ip_address or '—' }}</td>
+              <td>
+                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" data-bs-toggle="collapse" data-bs-target="#delta{{ l.id }}" aria-expanded="false">
+                  <i class="bi bi-code-slash"></i> View Payload
+                </button>
+              </td>
+            </tr>
+            <tr class="collapse bg-light" id="delta{{ l.id }}">
+              <td colspan="8" class="p-3">
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <span class="fw-bold d-block text-muted mb-1 font-sans-serif">Prior Values:</span>
+                    <pre class="bg-white p-2 border rounded mb-0 text-wrap" style="max-height: 140px; overflow-y: auto;">{{ l.old_values or '(None)' }}</pre>
+                  </div>
+                  <div class="col-md-6">
+                    <span class="fw-bold d-block text-muted mb-1 font-sans-serif">New Values:</span>
+                    <pre class="bg-white p-2 border rounded mb-0 text-wrap" style="max-height: 140px; overflow-y: auto;">{{ l.new_values or '(None)' }}</pre>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-5 text-muted font-sans-serif">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                No audit log records found matching your filters.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

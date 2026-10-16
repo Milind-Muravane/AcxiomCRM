@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+  <div class="col-md-5 col-lg-4">
+    <div class="card shadow-sm border-0 rounded-4">
+      <div class="card-body p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle mb-3" style="width: 56px; height: 56px;">
+            <i class="bi bi-shield-lock fs-2"></i>
+          </div>
+          <h3 class="fw-bold">Sign In to AcxiomCRM</h3>
+          <p class="text-muted small">Enter your credentials to access your account</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.login') }}">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="email">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+              {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="name@company.com", id="email") }}
+            </div>
+            {% for error in form.email.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="password">Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+              {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="••••••••", id="password") }}
+            </div>
+            {% for error in form.password.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="form-check mb-4">
+            {{ form.remember(class="form-check-input", id="remember") }}
+            <label class="form-check-label text-muted small" for="remember">
+              Remember me on this browser
+            </label>
+          </div>
+
+          <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-primary py-2 fw-semibold">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+            </button>
+          </div>
+        </form>
+
+        <div class="text-center mt-3 pt-3 border-top">
+          <p class="text-muted small mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-primary fw-semibold text-decoration-none">Register here</a></p>
+        </div>
+
+        <!-- Default Credentials Helper Card for Testing and Demo -->
+        <div class="alert alert-light border mt-4 mb-0 p-3 small text-muted">
+          <div class="fw-semibold text-dark mb-1"><i class="bi bi-info-circle me-1"></i> Demo Credentials:</div>
+          <div><strong>Admin:</strong> admin@acxiom.com / AdminPassword123!</div>
+          <div><strong>Manager:</strong> manager@acxiom.com / ManagerPassword123!</div>
+          <div><strong>Sales:</strong> sales@acxiom.com / SalesPassword123!</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

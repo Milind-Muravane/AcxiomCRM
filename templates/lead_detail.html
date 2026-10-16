@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Lead: {{ lead.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div class="d-flex align-items-center">
+    <a href="{{ url_for('leads.list_leads') }}" class="btn btn-outline-secondary btn-sm me-3">
+      <i class="bi bi-arrow-left"></i> Leads
+    </a>
+    <div>
+      <h3 class="fw-bold mb-0">{{ lead.name }}</h3>
+      <span class="badge bg-light text-dark border">{{ lead.lead_code }}</span>
+      <span class="badge bg-primary-subtle text-primary ms-1">{{ lead.status }}</span>
+    </div>
+  </div>
+  <div class="mt-2 mt-sm-0 d-flex gap-2">
+    {% if lead.status != 'Converted' %}
+    <a href="{{ url_for('leads.convert_lead', lead_id=lead.id) }}" class="btn btn-success btn-sm">
+      <i class="bi bi-arrow-repeat me-1"></i> Convert to Customer & Deal
+    </a>
+    {% endif %}
+    <a href="{{ url_for('followups.create_followup') }}?lead_id={{ lead.id }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-calendar-plus me-1"></i> Follow-up
+    </a>
+    <a href="{{ url_for('activities.create_activity') }}?lead_id={{ lead.id }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-clock-history me-1"></i> Log Activity
+    </a>
+    <a href="{{ url_for('leads.edit_lead', lead_id=lead.id) }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-pencil me-1"></i> Edit
+    </a>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Lead Profile Card -->
+  <div class="col-lg-5">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white py-3 fw-bold border-bottom">
+        <i class="bi bi-person-lines-fill me-2 text-primary"></i> Lead Overview
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Company</span>
+            <span class="fw-semibold">{{ lead.company_name or '—' }}</span>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Email</span>
+            <a href="mailto:{{ lead.email }}" class="text-decoration-none fw-semibold">{{ lead.email }}</a>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Phone</span>
+            <span class="fw-semibold">{{ lead.phone }}</span>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Lead Source</span>
+            <span class="badge bg-light text-muted border">{{ lead.source }}</span>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Expected Value</span>
+            <span class="fw-bold text-success">${{ "{:,.2f}".format(lead.expected_value) }}</span>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Assigned Sales Rep</span>
+            <span>{{ lead.assigned_user.name if lead.assigned_user else 'Unassigned' }}</span>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Created Date</span>
+            <span>{{ lead.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+          </li>
+          {% if lead.status == 'Converted' and lead.converted_customer %}
+          <li class="list-group-item px-0 d-flex justify-content-between bg-light p-2 rounded">
+            <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Converted Customer:</span>
+            <a href="{{ url_for('customers.view_customer', customer_id=lead.converted_customer.id) }}" class="fw-bold text-decoration-none">
+              {{ lead.converted_customer.name }} ({{ lead.converted_customer.customer_code }})
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scheduled Follow-ups for Lead -->
+  <div class="col-lg-7">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-calendar-check me-2 text-primary"></i> Follow-up Actions</span>
+        <a href="{{ url_for('followups.create_followup') }}?lead_id={{ lead.id }}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-plus"></i> Schedule
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if lead.followups %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Scheduled Date</th>
+                <th>Remarks</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in lead.followups %}
+              <tr class="{% if f.is_overdue %}row-overdue{% endif %}">
+                <td><span class="badge bg-light text-dark border">{{ f.followup_type }}</span></td>
+                <td class="small {% if f.is_overdue %}text-danger fw-bold{% endif %}">
+                  {{ f.followup_date.strftime('%b %d, %H:%M') }}
+                </td>
+                <td class="small text-truncate" style="max-width: 220px;">{{ f.remarks or '—' }}</td>
+                <td><span class="badge bg-secondary-subtle text-secondary">{{ f.status }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">No follow-ups scheduled for this lead.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">User & Role Administration</h3>
+    <p class="text-muted mb-0">Manage employee accounts, assign permissions, and oversee account security</p>
+  </div>
+  <div class="alert alert-info py-1 px-3 mb-0 small border">
+    <i class="bi bi-shield-lock-fill me-1"></i> Admin Privileges Active
+  </div>
+</div>
+
+<div class="card shadow-sm border-0">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Name</th>
+            <th>Email Address</th>
+            <th>Assigned Role</th>
+            <th>Account Status</th>
+            <th>Registration Date</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td class="text-muted fw-mono">#{{ u.id }}</td>
+            <td class="fw-bold text-dark">
+              {{ u.name }}
+              {% if u.id == current_user.id %}
+                <span class="badge bg-secondary-subtle text-secondary small ms-1">You</span>
+              {% endif %}
+            </td>
+            <td>{{ u.email }}</td>
+            <td>
+              {% if u.role == 'Admin' %}
+                <span class="badge badge-role-admin">Administrator</span>
+              {% elif u.role == 'Manager' %}
+                <span class="badge badge-role-manager">Manager</span>
+              {% else %}
+                <span class="badge badge-role-sales">Sales Executive</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge bg-success-subtle text-success">Active</span>
+              {% else %}
+                <span class="badge bg-danger-subtle text-danger">Deactivated</span>
+              {% endif %}
+              {% if u.is_locked() %}
+                <span class="badge bg-warning text-dark ms-1">Locked</span>
+              {% endif %}
+            </td>
+            <td class="small text-muted">{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm">
+                <a href="{{ url_for('users.edit_user', user_id=u.id) }}" class="btn btn-outline-primary" title="Edit Profile & Role">
+                  <i class="bi bi-pencil"></i> Edit
+                </a>
+                {% if u.id != current_user.id %}
+                <form method="POST" action="{{ url_for('users.toggle_status', user_id=u.id) }}" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  {% if u.is_active %}
+                    <button type="submit" class="btn btn-outline-danger" title="Deactivate Account" onclick="return confirm('Deactivate {{ u.name }}?');">
+                      <i class="bi bi-person-x"></i>
+                    </button>
+                  {% else %}
+                    <button type="submit" class="btn btn-outline-success" title="Activate Account">
+                      <i class="bi bi-person-check"></i>
+                    </button>
+                  {% endif %}
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center mb-4">
+      <a href="{{ url_for('opportunities.list_opportunities') }}" class="btn btn-outline-secondary btn-sm me-3">
+        <i class="bi bi-arrow-left"></i> Back to Opportunities
+      </a>
+      <h3 class="fw-bold mb-0">{{ title }}</h3>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3">
+      <div class="card-body p-4">
+        <form method="POST">
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold" for="name">Opportunity / Deal Name <span class="text-danger">*</span></label>
+              {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="e.g., Global Data Infrastructure Expansion") }}
+              {% for error in form.name.errors %}
+                <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="customer_id">Associated Customer <span class="text-danger">*</span></label>
+              {{ form.customer_id(class="form-select" + (" is-invalid" if form.customer_id.errors else "")) }}
+              {% for error in form.customer_id.errors %}
+                <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="lead_id">Originating Lead (Optional)</label>
+              {{ form.lead_id(class="form-select") }}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold" for="amount">Deal Amount ($) <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), placeholder="50000.00") }}
+              </div>
+              {% for error in form.amount.errors %}
+                <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold" for="stage">Pipeline Stage</label>
+              {{ form.stage(class="form-select") }}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold" for="probability">Probability (0-100%) <span class="text-danger">*</span></label>
+              <div class="input-group">
+                {{ form.probability(class="form-control" + (" is-invalid" if form.probability.errors else ""), placeholder="50") }}
+                <span class="input-group-text">%</span>
+              </div>
+              {% for error in form.probability.errors %}
+                <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="expected_close_date">Expected Close Date <span class="text-danger">*</span></label>
+              {{ form.expected_close_date(class="form-control" + (" is-invalid" if form.expected_close_date.errors else "")) }}
+              {% for error in form.expected_close_date.errors %}
+                <div class="text-danger small mt-1">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            {% if current_user.role in ['Admin', 'Manager'] %}
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="assigned_user_id">Assigned Sales Executive</label>
+              {{ form.assigned_user_id(class="form-select") }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="alert alert-light border mt-4 p-3 small text-muted">
+            <i class="bi bi-calculator me-1"></i> <strong>Weighted Pipeline Calculation:</strong>
+            <code>Amount &times; Probability &divide; 100</code> is calculated automatically by the server.
+          </div>
+
+          <hr class="my-4">
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{{ url_for('opportunities.list_opportunities') }}" class="btn btn-light">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4 fw-semibold">
+              <i class="bi bi-save me-1"></i> Save Opportunity
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

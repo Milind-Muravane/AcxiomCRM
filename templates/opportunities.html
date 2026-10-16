@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Opportunities Pipeline{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Opportunities & Pipeline</h3>
+    <p class="text-muted mb-0">Track active deals, pipeline stages, probabilities, and weighted values</p>
+  </div>
+  <a href="{{ url_for('opportunities.create_opportunity') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> New Opportunity
+  </a>
+</div>
+
+<!-- Summary Strip -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card bg-primary-subtle border-0 p-3 rounded-3">
+      <div class="small text-primary text-uppercase fw-bold">Filtered Total Deal Value</div>
+      <div class="fs-3 fw-bold text-primary">${{ "{:,.2f}".format(total_val) }}</div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card bg-success-subtle border-0 p-3 rounded-3">
+      <div class="small text-success text-uppercase fw-bold">Filtered Weighted Pipeline Value</div>
+      <div class="fs-3 fw-bold text-success">${{ "{:,.2f}".format(weighted_val) }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Search & Filter Controls -->
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body p-3">
+    <form method="GET" action="{{ url_for('opportunities.list_opportunities') }}" class="row g-2 align-items-center">
+      <div class="col-md-4 col-lg-5">
+        <div class="input-group">
+          <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+          <input type="text" name="search" class="form-control" placeholder="Search by deal or customer name..." value="{{ search }}">
+        </div>
+      </div>
+      <div class="col-md-3 col-lg-2">
+        <select name="stage" class="form-select">
+          <option value="All" {% if selected_stage == 'All' or not selected_stage %}selected{% endif %}>All Stages</option>
+          <option value="Qualification" {% if selected_stage == 'Qualification' %}selected{% endif %}>Qualification</option>
+          <option value="Proposal" {% if selected_stage == 'Proposal' %}selected{% endif %}>Proposal</option>
+          <option value="Negotiation" {% if selected_stage == 'Negotiation' %}selected{% endif %}>Negotiation</option>
+          <option value="Won" {% if selected_stage == 'Won' %}selected{% endif %}>Won</option>
+          <option value="Lost" {% if selected_stage == 'Lost' %}selected{% endif %}>Lost</option>
+        </select>
+      </div>
+      <div class="col-md-3 col-lg-2">
+        <select name="status" class="form-select">
+          <option value="All" {% if selected_status == 'All' or not selected_status %}selected{% endif %}>All Statuses</option>
+          <option value="Open" {% if selected_status == 'Open' %}selected{% endif %}>Open</option>
+          <option value="Won" {% if selected_status == 'Won' %}selected{% endif %}>Won</option>
+          <option value="Lost" {% if selected_status == 'Lost' %}selected{% endif %}>Lost</option>
+        </select>
+      </div>
+      <div class="col-md-2 col-lg-3 d-flex gap-2">
+        <button type="submit" class="btn btn-dark w-100">Filter</button>
+        {% if search or (selected_stage and selected_stage != 'All') or (selected_status and selected_status != 'All') %}
+          <a href="{{ url_for('opportunities.list_opportunities') }}" class="btn btn-outline-secondary" title="Clear Filters"><i class="bi bi-x-lg"></i></a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Opportunities Table -->
+<div class="card shadow-sm border-0">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Deal Name</th>
+            <th>Customer</th>
+            <th>Amount ($)</th>
+            <th>Stage</th>
+            <th>Probability</th>
+            <th>Weighted Value ($)</th>
+            <th>Close Date</th>
+            <th>Status</th>
+            <th>Sales Rep</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if opportunities %}
+            {% for o in opportunities %}
+            <tr>
+              <td>
+                <a href="{{ url_for('opportunities.view_opportunity', opportunity_id=o.id) }}" class="fw-bold text-decoration-none text-dark">
+                  {{ o.name }}
+                </a>
+              </td>
+              <td>
+                <a href="{{ url_for('customers.view_customer', customer_id=o.customer.id) }}" class="text-decoration-none">
+                  {{ o.customer.name }}
+                </a>
+              </td>
+              <td class="fw-semibold">${{ "{:,.2f}".format(o.amount) }}</td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ o.stage }}</span>
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="progress flex-grow-1 me-2" style="height: 6px; width: 45px;">
+                    <div class="progress-bar {% if o.probability >= 80 %}bg-success{% elif o.probability >= 40 %}bg-primary{% else %}bg-warning{% endif %}" role="progressbar" style="width: {{ o.probability }}%"></div>
+                  </div>
+                  <span class="small text-muted">{{ o.probability }}%</span>
+                </div>
+              </td>
+              <td class="fw-bold text-success">${{ "{:,.2f}".format(o.weighted_value) }}</td>
+              <td class="small text-muted">{{ o.expected_close_date.strftime('%Y-%m-%d') }}</td>
+              <td>
+                {% if o.status == 'Won' %}
+                  <span class="badge bg-success-subtle text-success">Won</span>
+                {% elif o.status == 'Lost' %}
+                  <span class="badge bg-danger-subtle text-danger">Lost</span>
+                {% else %}
+                  <span class="badge bg-primary-subtle text-primary">Open</span>
+                {% endif %}
+              </td>
+              <td class="small">{{ o.assigned_user.name if o.assigned_user else 'Unassigned' }}</td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm">
+                  <a href="{{ url_for('opportunities.view_opportunity', opportunity_id=o.id) }}" class="btn btn-outline-secondary" title="View Details">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a href="{{ url_for('opportunities.edit_opportunity', opportunity_id=o.id) }}" class="btn btn-outline-primary" title="Edit Deal">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  {% if current_user.role in ['Admin', 'Manager'] %}
+                  <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteOppModal{{ o.id }}" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                  {% endif %}
+                </div>
+
+                <!-- Delete Opportunity Modal -->
+                {% if current_user.role in ['Admin', 'Manager'] %}
+                <div class="modal fade" id="deleteOppModal{{ o.id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Delete Opportunity</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body text-start">
+                        <p>Are you sure you want to delete opportunity <strong>{{ o.name }}</strong>?</p>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form method="POST" action="{{ url_for('opportunities.delete_opportunity', opportunity_id=o.id) }}">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn btn-danger">Yes, Delete Opportunity</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="10" class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                No opportunities found matching your filters.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

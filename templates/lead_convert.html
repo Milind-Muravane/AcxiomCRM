@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Convert Lead: {{ lead.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center mb-4">
+      <a href="{{ url_for('leads.view_lead', lead_id=lead.id) }}" class="btn btn-outline-secondary btn-sm me-3">
+        <i class="bi bi-arrow-left"></i> Back to Lead
+      </a>
+      <div>
+        <h3 class="fw-bold mb-0">Convert Lead to Customer</h3>
+        <p class="text-muted small mb-0">Converting <strong>{{ lead.name }}</strong> ({{ lead.lead_code }}) into an active customer account</p>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3">
+      <div class="card-body p-4">
+        <form method="POST">
+          {{ form.hidden_tag() }}
+
+          <h5 class="fw-bold text-primary mb-3"><i class="bi bi-person-check me-2"></i> 1. Customer Destination</h5>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="customer_action">Destination Action</label>
+            {{ form.customer_action(class="form-select", id="customerActionSelect") }}
+          </div>
+
+          <div class="mb-4" id="existingCustomerGroup">
+            <label class="form-label fw-semibold" for="existing_customer_id">Select Existing Customer (if linking)</label>
+            {{ form.existing_customer_id(class="form-select") }}
+            <div class="form-text text-muted">Select an existing account if this lead belongs to an established customer.</div>
+          </div>
+
+          <hr class="my-4">
+
+          <h5 class="fw-bold text-primary mb-3"><i class="bi bi-briefcase me-2"></i> 2. Opportunity / Pipeline Deal</h5>
+          <div class="form-check mb-3">
+            {{ form.create_opportunity(class="form-check-input", id="createOppCheckbox") }}
+            <label class="form-check-label fw-semibold" for="createOppCheckbox">
+              Create an Opportunity in the sales pipeline for this deal
+            </label>
+          </div>
+
+          <div id="opportunityFields">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label fw-semibold" for="opportunity_name">Deal Name</label>
+                {{ form.opportunity_name(class="form-control", placeholder="e.g., Enterprise Software Contract") }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold" for="opportunity_amount">Deal Amount ($)</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  {{ form.opportunity_amount(class="form-control", placeholder="10000.00") }}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold" for="expected_close_date">Expected Close Date</label>
+                {{ form.expected_close_date(class="form-control") }}
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{{ url_for('leads.view_lead', lead_id=lead.id) }}" class="btn btn-light">Cancel</a>
+            <button type="submit" class="btn btn-success px-4 fw-semibold">
+              <i class="bi bi-check2-circle me-1"></i> Convert Lead Now
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

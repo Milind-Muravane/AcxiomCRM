@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Customer: {{ customer.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div class="d-flex align-items-center">
+    <a href="{{ url_for('customers.list_customers') }}" class="btn btn-outline-secondary btn-sm me-3">
+      <i class="bi bi-arrow-left"></i> Customers
+    </a>
+    <div>
+      <h3 class="fw-bold mb-0">{{ customer.name }}</h3>
+      <span class="badge bg-light text-dark border">{{ customer.customer_code }}</span>
+      <span class="badge {% if customer.status == 'Active' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %} ms-1">
+        {{ customer.status }}
+      </span>
+    </div>
+  </div>
+  <div class="mt-2 mt-sm-0 d-flex gap-2">
+    <a href="{{ url_for('opportunities.create_opportunity') }}?customer_id={{ customer.id }}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-briefcase me-1"></i> New Deal
+    </a>
+    <a href="{{ url_for('followups.create_followup') }}?customer_id={{ customer.id }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-calendar-plus me-1"></i> Follow-up
+    </a>
+    <a href="{{ url_for('activities.create_activity') }}?customer_id={{ customer.id }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-clock-history me-1"></i> Log Activity
+    </a>
+    <a href="{{ url_for('customers.edit_customer', customer_id=customer.id) }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-pencil me-1"></i> Edit
+    </a>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Customer Overview Card -->
+  <div class="col-lg-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white py-3 fw-bold border-bottom">
+        <i class="bi bi-person-badge me-2 text-primary"></i> Account Profile
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Company</span>
+            <span class="fw-semibold">{{ customer.company_name or '—' }}</span>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Email</span>
+            <a href="mailto:{{ customer.email }}" class="text-decoration-none fw-semibold">{{ customer.email }}</a>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Phone</span>
+            <span class="fw-semibold">{{ customer.phone }}</span>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Address</span>
+            <span>{{ customer.address or '—' }}</span>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">City / State</span>
+            <span>{{ customer.city or '—' }}, {{ customer.state or '—' }}</span>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Account Owner</span>
+            <span>{{ customer.created_by.name if customer.created_by else 'System' }}</span>
+          </li>
+          <li class="list-group-item px-0 d-flex justify-content-between">
+            <span class="text-muted">Created On</span>
+            <span>{{ customer.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Opportunities in Pipeline -->
+  <div class="col-lg-8">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-briefcase me-2 text-primary"></i> Opportunities & Deals</span>
+        <a href="{{ url_for('opportunities.create_opportunity') }}?customer_id={{ customer.id }}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-plus"></i> Add Deal
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if customer.opportunities %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Deal Name</th>
+                <th>Amount</th>
+                <th>Stage</th>
+                <th>Probability</th>
+                <th>Expected Close</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for o in customer.opportunities %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('opportunities.view_opportunity', opportunity_id=o.id) }}" class="fw-bold text-decoration-none">
+                    {{ o.name }}
+                  </a>
+                </td>
+                <td class="fw-semibold">${{ "{:,.2f}".format(o.amount) }}</td>
+                <td><span class="badge bg-light text-dark border">{{ o.stage }}</span></td>
+                <td>{{ o.probability }}%</td>
+                <td class="small text-muted">{{ o.expected_close_date.strftime('%Y-%m-%d') }}</td>
+                <td>
+                  {% if o.status == 'Won' %}
+                    <span class="badge bg-success-subtle text-success">Won</span>
+                  {% elif o.status == 'Lost' %}
+                    <span class="badge bg-danger-subtle text-danger">Lost</span>
+                  {% else %}
+                    <span class="badge bg-primary-subtle text-primary">Open</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+          No opportunities created for this customer yet.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Follow-ups and Activities Tabbed Section -->
+<div class="row g-4">
+  <!-- Follow-ups -->
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-calendar-check me-2 text-primary"></i> Follow-up Actions</span>
+        <a href="{{ url_for('followups.create_followup') }}?customer_id={{ customer.id }}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-plus"></i> Schedule
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if customer.followups %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Scheduled</th>
+                <th>Remarks</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in customer.followups %}
+              <tr class="{% if f.is_overdue %}row-overdue{% endif %}">
+                <td><span class="badge bg-light text-dark border">{{ f.followup_type }}</span></td>
+                <td class="small {% if f.is_overdue %}text-danger fw-bold{% endif %}">
+                  {{ f.followup_date.strftime('%b %d, %H:%M') }}
+                </td>
+                <td class="small text-truncate" style="max-width: 180px;">{{ f.remarks or '—' }}</td>
+                <td><span class="badge bg-secondary-subtle text-secondary">{{ f.status }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">No scheduled follow-ups.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Logs -->
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i> Interaction History</span>
+        <a href="{{ url_for('activities.create_activity') }}?customer_id={{ customer.id }}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-plus"></i> Log
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if customer.activities %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in customer.activities %}
+              <tr>
+                <td><span class="badge bg-primary-subtle text-primary">{{ a.activity_type }}</span></td>
+                <td class="fw-semibold small">{{ a.subject }}</td>
+                <td class="small text-muted">{{ a.activity_date.strftime('%b %d, %H:%M') }}</td>
+                <td><span class="badge bg-light text-dark border">{{ a.status }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">No activities logged yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Activities{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Sales Activities</h3>
+    <p class="text-muted mb-0">Audit history of calls, meetings, emails, and completed client tasks</p>
+  </div>
+  <a href="{{ url_for('activities.create_activity') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> Log Activity
+  </a>
+</div>
+
+<!-- Type and Status Filter -->
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body p-3">
+    <form method="GET" action="{{ url_for('activities.list_activities') }}" class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <select name="type" class="form-select">
+          <option value="All" {% if selected_type == 'All' or not selected_type %}selected{% endif %}>All Activity Types</option>
+          <option value="Call" {% if selected_type == 'Call' %}selected{% endif %}>Calls</option>
+          <option value="Meeting" {% if selected_type == 'Meeting' %}selected{% endif %}>Meetings</option>
+          <option value="Email" {% if selected_type == 'Email' %}selected{% endif %}>Emails</option>
+          <option value="Task" {% if selected_type == 'Task' %}selected{% endif %}>Tasks</option>
+        </select>
+      </div>
+      <div class="col-md-5">
+        <select name="status" class="form-select">
+          <option value="All" {% if selected_status == 'All' or not selected_status %}selected{% endif %}>All Statuses</option>
+          <option value="Completed" {% if selected_status == 'Completed' %}selected{% endif %}>Completed</option>
+          <option value="In Progress" {% if selected_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+          <option value="Planned" {% if selected_status == 'Planned' %}selected{% endif %}>Planned</option>
+          <option value="Cancelled" {% if selected_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark w-100">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Activities Table -->
+<div class="card shadow-sm border-0">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Subject & Description</th>
+            <th>Associated Target</th>
+            <th>Activity Date & Time</th>
+            <th>Status</th>
+            <th>Logged By</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if activities %}
+            {% for a in activities %}
+            <tr>
+              <td>
+                <span class="badge bg-primary-subtle text-primary border">
+                  <i class="bi {% if a.activity_type == 'Call' %}bi-telephone{% elif a.activity_type == 'Meeting' %}bi-people{% elif a.activity_type == 'Email' %}bi-envelope{% else %}bi-check-square{% endif %} me-1"></i>
+                  {{ a.activity_type }}
+                </span>
+              </td>
+              <td>
+                <div class="fw-bold text-dark">{{ a.subject }}</div>
+                <div class="small text-muted text-truncate" style="max-width: 320px;">
+                  {{ a.description or 'No additional notes.' }}
+                </div>
+              </td>
+              <td>
+                {% if a.customer %}
+                  <div>
+                    <span class="badge bg-light text-dark border small me-1">Customer</span>
+                    <a href="{{ url_for('customers.view_customer', customer_id=a.customer.id) }}" class="text-decoration-none fw-semibold">
+                      {{ a.customer.name }}
+                    </a>
+                  </div>
+                {% elif a.lead %}
+                  <div>
+                    <span class="badge bg-light text-dark border small me-1">Lead</span>
+                    <a href="{{ url_for('leads.view_lead', lead_id=a.lead.id) }}" class="text-decoration-none fw-semibold">
+                      {{ a.lead.name }}
+                    </a>
+                  </div>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted">
+                {{ a.activity_date.strftime('%Y-%m-%d %H:%M') }}
+              </td>
+              <td>
+                {% if a.status == 'Completed' %}
+                  <span class="badge bg-success-subtle text-success">Completed</span>
+                {% elif a.status == 'In Progress' %}
+                  <span class="badge bg-warning-subtle text-warning">In Progress</span>
+                {% else %}
+                  <span class="badge bg-light text-dark border">{{ a.status }}</span>
+                {% endif %}
+              </td>
+              <td class="small">{{ a.assigned_user.name if a.assigned_user else 'Unassigned' }}</td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm">
+                  <a href="{{ url_for('activities.edit_activity', activity_id=a.id) }}" class="btn btn-outline-primary" title="Edit Activity">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteActModal{{ a.id }}" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+
+                <!-- Delete Activity Modal -->
+                <div class="modal fade" id="deleteActModal{{ a.id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Delete Activity</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body text-start">
+                        <p>Are you sure you want to delete activity <strong>{{ a.subject }}</strong>?</p>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form method="POST" action="{{ url_for('activities.delete_activity', activity_id=a.id) }}">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                No activities found matching your filters.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

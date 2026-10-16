@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}Executive Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-1">CRM Overview & Analytics</h2>
+    <p class="text-muted mb-0">Real-time pipeline metrics, conversion performance, and active deals</p>
+  </div>
+  <div class="mt-2 mt-sm-0 d-flex gap-2">
+    <a href="{{ url_for('leads.create_lead') }}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-plus-circle me-1"></i> New Lead
+    </a>
+    <a href="{{ url_for('opportunities.create_opportunity') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-lg me-1"></i> New Deal
+    </a>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- EIGHT REQUIRED KPI METRIC CARDS                                 -->
+<!-- ============================================================== -->
+<div class="row g-3 mb-4">
+  <!-- 1. Total Customers -->
+  <div class="col-sm-6 col-md-3">
+    <div class="card kpi-card h-100 p-3 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="kpi-title">Total Customers</div>
+          <div class="kpi-value text-primary">{{ total_customers }}</div>
+        </div>
+        <div class="kpi-icon bg-primary-subtle text-primary">
+          <i class="bi bi-people-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Total Leads -->
+  <div class="col-sm-6 col-md-3">
+    <div class="card kpi-card h-100 p-3 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="kpi-title">Total Leads</div>
+          <div class="kpi-value text-info">{{ total_leads }}</div>
+        </div>
+        <div class="kpi-icon bg-info-subtle text-info">
+          <i class="bi bi-funnel-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Open Leads -->
+  <div class="col-sm-6 col-md-3">
+    <div class="card kpi-card h-100 p-3 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="kpi-title">Open Leads</div>
+          <div class="kpi-value text-secondary">{{ open_leads }}</div>
+        </div>
+        <div class="kpi-icon bg-secondary-subtle text-secondary">
+          <i class="bi bi-lightning-charge-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Total Opportunities -->
+  <div class="col-sm-6 col-md-3">
+    <div class="card kpi-card h-100 p-3 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="kpi-title">Total Opportunities</div>
+          <div class="kpi-value text-dark">{{ total_opportunities }}</div>
+        </div>
+        <div class="kpi-icon bg-dark-subtle text-dark">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Open Opportunities -->
+  <div class="col-sm-6 col-md-3">
+    <div class="card kpi-card h-100 p-3 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="kpi-title">Open Opportunities</div>
+          <div class="kpi-value text-warning">{{ open_opportunities }}</div>
+        </div>
+        <div class="kpi-icon bg-warning-subtle text-warning">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Won Opportunities -->
+  <div class="col-sm-6 col-md-3">
+    <div class="card kpi-card h-100 p-3 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="kpi-title">Won Opportunities</div>
+          <div class="kpi-value text-success">{{ won_opportunities }}</div>
+        </div>
+        <div class="kpi-icon bg-success-subtle text-success">
+          <i class="bi bi-trophy-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Lost Opportunities -->
+  <div class="col-sm-6 col-md-3">
+    <div class="card kpi-card h-100 p-3 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="kpi-title">Lost Opportunities</div>
+          <div class="kpi-value text-danger">{{ lost_opportunities }}</div>
+        </div>
+        <div class="kpi-icon bg-danger-subtle text-danger">
+          <i class="bi bi-x-circle-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Total Pipeline Value -->
+  <div class="col-sm-6 col-md-3">
+    <div class="card kpi-card h-100 p-3 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="kpi-title">Weighted Pipeline Value</div>
+          <div class="kpi-value text-primary">${{ "{:,.2f}".format(total_pipeline_value) }}</div>
+        </div>
+        <div class="kpi-icon bg-primary-subtle text-primary">
+          <i class="bi bi-graph-up-arrow"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- THREE REQUIRED CHART.JS CHARTS                                  -->
+<!-- ============================================================== -->
+<div class="row g-4 mb-4">
+  <!-- Chart 1: Lead Status Distribution -->
+  <div class="col-lg-4">
+    <div class="card chart-card shadow-sm h-100 p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-pie-chart me-1 text-primary"></i> Lead Status Distribution</h6>
+        <span class="badge bg-light text-muted border">Live Data</span>
+      </div>
+      <p class="text-muted small mb-3">Breakdown of leads by current status stage</p>
+      <div class="chart-container">
+        <canvas id="leadStatusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 2: Opportunity Pipeline Stages -->
+  <div class="col-lg-4">
+    <div class="card chart-card shadow-sm h-100 p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart-steps me-1 text-primary"></i> Opportunity Stages</h6>
+        <span class="badge bg-light text-muted border">Pipeline</span>
+      </div>
+      <p class="text-muted small mb-3">Total deal volume & value by pipeline stage</p>
+      <div class="chart-container">
+        <canvas id="pipelineStageChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 3: Monthly Sales / Opportunity Outcomes -->
+  <div class="col-lg-4">
+    <div class="card chart-card shadow-sm h-100 p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up me-1 text-primary"></i> Monthly Sales & Outcomes</h6>
+        <span class="badge bg-light text-muted border">6 Months</span>
+      </div>
+      <p class="text-muted small mb-3">Monthly comparison of Won vs Lost deal values</p>
+      <div class="chart-container">
+        <canvas id="monthlySalesChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- RECENT DATA WIDGETS: UPCOMING FOLLOW-UPS & RECENT ACTIVITIES    -->
+<!-- ============================================================== -->
+<div class="row g-4">
+  <!-- Upcoming Follow-ups -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar-check me-2 text-primary"></i> Upcoming & Overdue Follow-ups</h6>
+        <a href="{{ url_for('followups.list_followups') }}" class="btn btn-sm btn-link text-decoration-none">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if upcoming_followups %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Target</th>
+                <th>Date / Time</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in upcoming_followups %}
+              <tr class="{% if f.is_overdue %}row-overdue{% endif %}">
+                <td>
+                  <span class="badge bg-light text-dark border">
+                    <i class="bi {% if f.followup_type == 'Call' %}bi-telephone{% elif f.followup_type == 'Email' %}bi-envelope{% elif f.followup_type == 'Meeting' %}bi-people{% else %}bi-display{% endif %} me-1"></i>
+                    {{ f.followup_type }}
+                  </span>
+                </td>
+                <td>
+                  {% if f.customer %}
+                    <a href="{{ url_for('customers.view_customer', customer_id=f.customer.id) }}" class="text-decoration-none fw-semibold">{{ f.customer.name }}</a>
+                  {% elif f.lead %}
+                    <a href="{{ url_for('leads.view_lead', lead_id=f.lead.id) }}" class="text-decoration-none fw-semibold">{{ f.lead.name }}</a>
+                  {% else %}
+                    <span class="text-muted">&mdash;</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="small {% if f.is_overdue %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                    {{ f.followup_date.strftime('%b %d, %H:%M') }}
+                    {% if f.is_overdue %}<span class="badge bg-danger ms-1">Overdue</span>{% endif %}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-secondary-subtle text-secondary">{{ f.status }}</span>
+                </td>
+                <td>
+                  <a href="{{ url_for('followups.edit_followup', followup_id=f.id) }}" class="btn btn-sm btn-outline-secondary py-0">Edit</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          <i class="bi bi-check2-circle fs-3 text-success d-block mb-1"></i>
+          No pending or overdue follow-ups!
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activities -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2 text-primary"></i> Recent Sales Activities</h6>
+        <a href="{{ url_for('activities.list_activities') }}" class="btn btn-sm btn-link text-decoration-none">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_activities %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Activity</th>
+                <th>Subject</th>
+                <th>Target</th>
+                <th>Date</th>
+                <th>Rep</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in recent_activities %}
+              <tr>
+                <td>
+                  <span class="badge bg-primary-subtle text-primary border">
+                    {{ a.activity_type }}
+                  </span>
+                </td>
+                <td class="fw-semibold">{{ a.subject }}</td>
+                <td>
+                  {% if a.customer %}
+                    <a href="{{ url_for('customers.view_customer', customer_id=a.customer.id) }}" class="text-decoration-none">{{ a.customer.name }}</a>
+                  {% elif a.lead %}
+                    <a href="{{ url_for('leads.view_lead', lead_id=a.lead.id) }}" class="text-decoration-none">{{ a.lead.name }}</a>
+                  {% else %}
+                    <span class="text-muted">&mdash;</span>
+                  {% endif %}
+                </td>
+                <td class="small text-muted">{{ a.activity_date.strftime('%b %d, %H:%M') }}</td>
+                <td class="small">{{ a.assigned_user.name if a.assigned_user else 'Unassigned' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          No recent activities logged yet.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Supply live data from Flask to Chart.js in dashboard.js
+  window.chart1Data = {{ chart1_json | safe }};
+  window.chart2Data = {{ chart2_json | safe }};
+  window.chart3Data = {{ chart3_json | safe }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

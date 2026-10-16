@@ -1,0 +1,131 @@
+/* AcxiomCRM Custom Styles */
+:root {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --sidebar-bg: #0f172a;
+  --sidebar-hover: #1e293b;
+  --card-bg: #ffffff;
+  --body-bg: #f8fafc;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--body-bg);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar */
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.brand-badge {
+  font-size: 0.7rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 6px;
+  text-transform: uppercase;
+}
+
+/* KPI Cards */
+.kpi-card {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background-color: #ffffff;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.kpi-title {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.kpi-value {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 4px;
+}
+
+.kpi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+/* Table styling */
+.table th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+  background-color: #f8fafc;
+  border-top: none;
+}
+
+.table td {
+  vertical-align: middle;
+  font-size: 0.92rem;
+}
+
+/* Badges */
+.badge-role-admin {
+  background-color: #dc2626;
+  color: #fff;
+}
+
+.badge-role-manager {
+  background-color: #7c3aed;
+  color: #fff;
+}
+
+.badge-role-sales {
+  background-color: #0284c7;
+  color: #fff;
+}
+
+/* Chart Containers */
+.chart-card {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.chart-container {
+  position: relative;
+  min-height: 280px;
+  width: 100%;
+}
+
+/* Overdue highlight */
+.row-overdue {
+  background-color: #fff1f2 !important;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border-color);
+  background-color: #ffffff;
+}
